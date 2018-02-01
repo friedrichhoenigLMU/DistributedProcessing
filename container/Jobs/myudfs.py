@@ -6,7 +6,7 @@ def strToTS(d):
     (dat, tim) = d.split(' ')
     (Y, M, D) = dat.split('-')
     (h, m, s) = tim.split(':')
-    t = datetime(int(Y), int(M), int(D), int(h), int(m), int(s))
+    t = datetime(int(Y), int(M), int(D), int(h), int(m), int(float(s)))
     return t
 
 
