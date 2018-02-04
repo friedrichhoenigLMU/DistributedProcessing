@@ -6,7 +6,7 @@ echo "  *******************************  fixing tasks   ************************
 startDate="$1 00:00:00"
 endDate="$1 23:59:59"
 fileName="$1"
-ind="$1"
+ind=${fileName:0:7}
 echo "start date: ${startDate}"
 echo "end date: ${endDate}"
 echo "file name: ${fileName}"
