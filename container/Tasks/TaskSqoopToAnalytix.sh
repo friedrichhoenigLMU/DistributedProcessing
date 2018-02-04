@@ -3,7 +3,10 @@
 echo "  *******************************  importing JediTasks table  *******************************"
 echo " between $1 and $2 "
 
-sqoop import -D oraoop.disabled=true --direct \
+sqoop import \
+    -D oraoop.disabled=true \
+    -D mapred.child.java.opts="-Djava.security.egd=file:/dev/../dev/urandom" \
+    --direct \
     --connect $JOB_ORACLE_CONNECTION_STRING \
     --table ATLAS_PANDA.JEDI_TASKS \
     --username $JOB_ORACLE_USER --password $JOB_ORACLE_PASS \

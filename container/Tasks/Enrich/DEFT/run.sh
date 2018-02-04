@@ -9,5 +9,13 @@ echo "index : ${ind}"
 ./SqoopToAnalytix.sh "${startDate}"
 echo "Sqooping DONE."
 
-# pig -4 log4j.properties -f JobsToESuc.pig -param -param ININD=${ind}
+
+hdfs dfs -getmerge /atlas/analytics/DEFT_temp /tmp/DEFT.update
+python3.5 updater.py /tmp/DEFT.update
+
 echo "Updating UC DONE."
+
+hdfs dfs -rm -R -f /atlas/analytics/DEFT_temp
+rm /tmp/DEFT.update
+
+echo "Clean up finished."

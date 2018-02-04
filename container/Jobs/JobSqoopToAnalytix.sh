@@ -5,6 +5,7 @@ echo " between $1 and $2 "
 
 
 sqoop import \
+    -D mapred.child.java.opts="-Djava.security.egd=file:/dev/../dev/urandom" \
     --direct \
     --connect $JOB_ORACLE_CONNECTION_STRING \
     --table ATLAS_PANDA.JOBSARCHIVED4 \
