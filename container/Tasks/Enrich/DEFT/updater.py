@@ -10,19 +10,15 @@ import pandas as pd
 INFILE = sys.argv[1]
 print("processing input file", INFILE)
 
-df = pd.read_csv(INFILE, header=None, names=['TASKID', 'OUTPUT_FORMATS'])
+df = pd.read_csv(INFILE, header=None, names=['taskid', 'output_formats'])
 print(df.head())
 
-# leave only retries
-df = df[df.relation_type == 'retry']
-del df['relation_type']
-
-# find min and max old pid
-min_pid = df.old_pid.min()
-max_pid = df.old_pid.max()
+# find min and max  taskid
+min_tid = df.taskid.min()
+max_tid = df.taskid.max()
 
 # make index to be old_pid
-df.set_index("old_pid", inplace=True)
+df.set_index("taskid", inplace=True)
 
 # find oldest and newest index that should be scanned
 es = Elasticsearch([{'host': 'atlas-kibana.mwt2.org', 'port': 9200}], timeout=60)
@@ -32,7 +28,7 @@ min_limit_q = {
     'query': {
         "range": {
             "pandaid": {
-                "lte": int(min_pid),
+                "lte": int(min_tid),
                 "gt": 0
             }
         }
