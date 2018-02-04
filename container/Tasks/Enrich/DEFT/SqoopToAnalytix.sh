@@ -8,11 +8,9 @@ sqoop import \
     -D mapred.child.java.opts="-Djava.security.egd=file:/dev/../dev/urandom" \
     --direct \
     --connect $JOB_ORACLE_CONNECTION_STRING \
-    --table ATLAS_DEFT.T_PRODUCTION_TASK \
-    --where "TIMESTAMP > TO_DATE('$1','YYYY-MM-DD HH24:MI:SS') " \
+    --query "select TASKID, OUTPUT_FORMATS from ATLAS_DEFT.T_PRODUCTION_TASK  WHERE TIMESTAMP > TO_DATE('$1','YYYY-MM-DD HH24:MI:SS')  AND \$CONDITIONS " \
     --username $JOB_ORACLE_USER --password $JOB_ORACLE_PASS \
-    -m 2 --target-dir /atlas/analytics/DEFT_temp \
-    --columns TASKID,OUTPUT_FORMATS \
+    -m 1 --target-dir /atlas/analytics/DEFT_temp \
     --map-column-java TASKID=Long,OUTPUT_FORMATS=String
 
 echo "DONE"

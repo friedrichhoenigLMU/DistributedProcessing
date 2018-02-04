@@ -11,7 +11,7 @@ echo "Sqooping DONE."
 
 
 hdfs dfs -getmerge /atlas/analytics/DEFT_temp /tmp/DEFT.update
-python3.5 updater.py /tmp/DEFT.update
+python3.6 updater.py /tmp/DEFT.update
 
 echo "Updating UC DONE."
 
