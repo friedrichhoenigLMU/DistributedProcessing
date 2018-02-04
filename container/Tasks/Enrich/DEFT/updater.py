@@ -13,9 +13,8 @@ print("processing input file", INFILE)
 df = pd.read_csv(INFILE, header=None, names=['taskid', 'output_formats'])
 print(df.head())
 
-# find min and max  taskid
+# find min taskid
 min_tid = df.taskid.min()
-max_tid = df.taskid.max()
 
 # make index to be old_pid
 df.set_index("taskid", inplace=True)
@@ -27,38 +26,22 @@ min_limit_q = {
     "size": 1,
     'query': {
         "range": {
-            "pandaid": {
+            "jeditaskid": {
                 "lte": int(min_tid),
                 "gt": 0
             }
         }
     },
-    "sort": [{"pandaid": {"order": "desc"}}]
+    "sort": [{"jeditaskid": {"order": "desc"}}]
 }
 
-r_min = es.search(index="jobs_archive_2017*", body=min_limit_q)
+r_min = es.search(index="tasks_archive_*", body=min_limit_q)
 min_index = r_min['hits']['hits'][0]['_index']
 
-max_limit_q = {
-    "size": 1,
-    'query': {
-        "range": {
-            "pandaid": {
-                "lte": int(max_pid + 10E6),
-                "gt": int(max_pid)
-            }
-        }
-    },
-    "sort": [{"pandaid": {"order": "asc"}}]
-}
-
-r_min = es.search(index="jobs_archive_2017*", body=max_limit_q)
-max_index = r_min['hits']['hits'][0]['_index']
-
-print("limit indices: ", min_index, max_index)
+print("min index: ", min_index)
 
 # get relevant job indices
-indices = es.cat.indices(index="jobs_archive_20*", h="index", request_timeout=600).split('\n')
+indices = es.cat.indices(index="tasks_archive_*", h="index", request_timeout=600).split('\n')
 indices = sorted(indices)
 indices = [x for x in indices if x != '']
 
@@ -67,32 +50,31 @@ acc = False
 for i in indices:
     if i == min_index:
         acc = True
-    if i == max_index:
-        acc = False
-    if i == min_index or i == max_index or acc == True:
+    if acc == True:
         selected_indices.append(i)
 
-job_indices = ''
-job_indices = ','.join(selected_indices)
-print(job_indices)
+task_indices = ''
+task_indices = ','.join(selected_indices)
+print(task_indices)
 
-job_query = {
+task_query = {
     "size": 0,
     "_source": ["_id"],
     'query': {
-        #"match_all": {}
+        "match_all": {}
         # maybe loop over over not finished jobs
-        'bool': {'must_not': [{"term": {"jobstatus": "finished"}}]}
+        # 'bool': {'must_not': [{"term": {"jobstatus": "finished"}}]}
     }
 
 }
 
 
-def exec_update(jobs):
+def exec_update(tasks):
     global df
-    jdf = pd.DataFrame(jobs)
-    jdf.set_index('pid', inplace=True)
+    jdf = pd.DataFrame(tasks)
+    jdf.set_index('taskid', inplace=True)
     # print(jdf.head())
+    return
     jc = jdf.join(df).dropna()
     print('parent:', df.shape[0], '\t jobs:', jdf.shape[0], 'jcleaned:', jc.shape[0])
     jcg = jc.groupby(jc.index)
@@ -124,19 +106,19 @@ def exec_update(jobs):
     print(res)
 
 
-jobs = []
-scroll = scan(client=es, index=job_indices, query=job_query, scroll='5m', timeout="5m", size=10000)
+tasks = []
+scroll = scan(client=es, index=task_indices, query=task_query, scroll='5m', timeout="5m", size=10000)
 count = 0
 
 for res in scroll:
     count += 1
     if not count % 100000:
         #print(' selected:', count)
-        exec_update(jobs)
+        exec_update(tasks)
         jobs = []
     # print(res)
-    jobs.append({"pid": int(res['_id']), "ind": res['_index']})
+    tasks.append({"taskid": int(res['_id']), "ind": res['_index']})
     #if count%5 == 1: exec_update(jobs)
 
-exec_update(jobs)
-jobs = []
+exec_update(tasks)
+tasks = []
