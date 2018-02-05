@@ -65,7 +65,6 @@ task_query = {
         # maybe loop over over not finished jobs
         # 'bool': {'must_not': [{"term": {"jobstatus": "finished"}}]}
     }
-
 }
 
 
@@ -74,31 +73,18 @@ def exec_update(tasks):
     jdf = pd.DataFrame(tasks)
     jdf.set_index('taskid', inplace=True)
     # print(jdf.head())
-    return
     jc = jdf.join(df).dropna()
-    print('parent:', df.shape[0], '\t jobs:', jdf.shape[0], 'jcleaned:', jc.shape[0])
-    jcg = jc.groupby(jc.index)
-    cnts = jcg.count()
-    # print("multiples:", cnts[cnts.new_pid>1])
-
-    ma = {}
-    for old_pid, row in jc.iterrows():
-        ind = row['ind']
-        child_id = row['new_pid']
-        # print(ind,child_id)
-        if old_pid not in ma:
-            ma[old_pid] = ['', []]
-        ma[old_pid][0] = ind
-        ma[old_pid][1].append(int(child_id))
+    print('tasks from file:', df.shape[0], '\ttasks from ES:', jdf.shape[0], '\tjoined & cleaned:', jc.shape[0])
+    print(jc.head())
 
     data = []
-    for k, v in ma.items():
+    for tid, row in jc.iterrows():
         d = {
             '_op_type': 'update',
-            '_index': v[0],
-            '_type': 'jobs_data',
-            '_id': int(k),
-            'doc': {'child_ids': v[1]}
+            '_index': row['ind'],
+            '_type': 'task_data',
+            '_id': int(tid),
+            'doc': {'output_formats': row['output_formats']}
         }
         data.append(d)
 
