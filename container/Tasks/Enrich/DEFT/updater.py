@@ -84,7 +84,7 @@ def exec_update(tasks):
             '_index': row['ind'],
             '_type': 'task_data',
             '_id': int(tid),
-            'doc': {'output_formats': row['output_formats']}
+            'doc': {'output_formats': row['output_formats'].split('.')}
         }
         data.append(d)
 
