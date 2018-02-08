@@ -13,7 +13,7 @@ echo "file name: ${fileName}"
 echo "index : ${ind}"
 
 echo "Removing previous data in HDFS"
-hdfs dfs rm -R -f hdfs://analytix/atlas/analytics/jobs/$1_*
+hdfs dfs rm -R -f -skipTrash  hdfs://analytix/atlas/analytics/jobs/$1_*
 
 ./JobSqoopToAnalytix.sh "${startDate}" "${endDate}" "${fileName}"
 echo "Sqooping DONE."

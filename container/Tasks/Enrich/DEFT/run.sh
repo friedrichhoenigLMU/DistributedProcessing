@@ -15,7 +15,7 @@ python3.6 updater.py /tmp/DEFT.update
 
 echo "Updating UC DONE."
 
-hdfs dfs -rm -R -f /atlas/analytics/DEFT_temp
+hdfs dfs -rm -R -f -skipTrash /atlas/analytics/DEFT_temp
 rm /tmp/DEFT.update
 
 echo "Clean up finished."
