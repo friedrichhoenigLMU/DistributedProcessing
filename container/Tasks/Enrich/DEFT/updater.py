@@ -101,7 +101,7 @@ for res in scroll:
     if not count % 5000000:
         #print(' selected:', count)
         exec_update(tasks)
-        jobs = []
+        tasks = []
     # print(res)
     tasks.append({"taskid": int(res['_id']), "ind": res['_index']})
     #if count%5 == 1: exec_update(jobs)
