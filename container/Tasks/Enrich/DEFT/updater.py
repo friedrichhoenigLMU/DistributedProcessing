@@ -98,7 +98,7 @@ count = 0
 
 for res in scroll:
     count += 1
-    if not count % 100000:
+    if not count % 5000000:
         #print(' selected:', count)
         exec_update(tasks)
         jobs = []
