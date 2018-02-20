@@ -4,9 +4,9 @@ echo "  *******************************  importing job status table  ***********
 echo " between $1 and $2 "
 
 sqoop import \
-    --connect "jdbc:oracle:thin:@//ADCR1-ADG-S.cern.ch:10121/ADCR.cern.ch" \
-    --table ATLAS_PANDA.JOBS_STATUSLOG \
+    --connect $JOB_ORACLE_ADG_CONNECTION_STRING \
     --username $JOB_ORACLE_USER --password $JOB_ORACLE_PASS \
+    --table ATLAS_PANDA.JOBS_STATUSLOG \
     -m 4 --split-by PANDAID --as-avrodatafile \
     --target-dir /atlas/analytics/job_states/$1 \
     --columns PANDAID,MODIFICATIONTIME,JOBSTATUS,PRODSOURCELABEL,CLOUD,COMPUTINGSITE,MODIFTIME_EXTENDED  \

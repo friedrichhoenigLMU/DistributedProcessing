@@ -4,8 +4,6 @@
 # it scoops jobs parent info and stores it in hdfs
 # fetches is from there and copies it to uct2-collectd for processing and indexing.
 
-kinit ivukotic@CERN.CH -k -t /afs/cern.ch/user/i/ivukotic/ivukotic.keytab
-
 echo "  *******************************  importing parent/child table  *******************************"
 
 startDate=$(date -u '+%Y-%m-%d' -d "-48hour")
