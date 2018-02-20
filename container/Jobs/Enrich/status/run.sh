@@ -8,6 +8,8 @@ endDate=$(date +%Y-%m-%d  -d "-3day")
 echo "start date: ${startDate}"
 echo "end date: ${endDate}"
 
+hdfs dfs -rm -R -f -skipTrash /atlas/analytics/job_states/${startDate}
+
 ./SqoopToAnalytix.sh ${startDate} ${endDate}
 
 echo "Sqooping DONE."
