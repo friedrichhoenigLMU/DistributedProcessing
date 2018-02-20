@@ -117,7 +117,7 @@ def exec_update(jobs):
 
     data = []
     for k, v in ma.items():
-        data.append {
+        data.append({
             '_op_type': 'update',
             '_index': v[0],
             '_type': 'jobs_data',
@@ -125,13 +125,13 @@ def exec_update(jobs):
             'doc': {'child_ids': v[1]}
         })
 
-    res=bulk(client = es, actions = data, stats_only = True, timeout = "5m")
+    res = bulk(client=es, actions=data, stats_only=True, timeout="5m")
     print("updated:", res[0], "  issues:", res[1])
 
 
-jobs=[]
-scroll=scan(client = es, index = job_indices, query = job_query, scroll = '5m', timeout = "5m", size = 10000)
-count=0
+jobs = []
+scroll = scan(client=es, index=job_indices, query=job_query, scroll='5m', timeout="5m", size=10000)
+count = 0
 
 # looping over all jobs in all these indices
 
@@ -140,10 +140,10 @@ for res in scroll:
     if not count % 100000:
         print('read:', count)
         exec_update(jobs)
-        jobs=[]
+        jobs = []
     # print(res)
     jobs.append({"pid": int(res['_id']), "ind": res['_index']})
     # if count%5 == 1: exec_update(jobs)
 
 exec_update(jobs)
-jobs=[]
+jobs = []
