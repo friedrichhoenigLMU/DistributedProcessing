@@ -13,11 +13,13 @@ import pandas as pd
 INDEX = 'jobs_archive_*'
 
 df = pd.read_csv('/tmp/job_parents_temp.csv', header=None, names=['old_pid', 'new_pid', 'relation_type'])
-print(df.describe())
+print('jobs found in the file:', df.old_pid.count())
 
 # leave only retries
 df = df[df.relation_type == 'retry']
 del df['relation_type']
+
+print('jobs to be updated:', df.old_pid.count())
 
 # find min and max old pid
 min_pid = df.old_pid.min()
@@ -86,11 +88,8 @@ job_query = {
     "size": 0,
     "_source": ["_id"],
     'query': {
-        #"match_all": {}
-        # maybe loop over  not finished jobs
         'bool': {'must_not': [{"term": {"jobstatus": "finished"}}]}
     }
-
 }
 
 
@@ -100,9 +99,10 @@ def exec_update(jobs):
     jdf.set_index('pid', inplace=True)
     # print(jdf.head())
     jc = jdf.join(df).dropna()
-    print('parent:', df.shape[0], '\t jobs:', jdf.shape[0], 'jcleaned:', jc.shape[0])
-    jcg = jc.groupby(jc.index)
-    cnts = jcg.count()
+    print(' jobs:', jc.shape[0])
+
+    # jcg = jc.groupby(jc.index)
+    # cnts = jcg.count()
     # print("multiples:", cnts[cnts.new_pid>1])
 
     ma = {}
@@ -117,32 +117,33 @@ def exec_update(jobs):
 
     data = []
     for k, v in ma.items():
-        d = {
+        data.append {
             '_op_type': 'update',
             '_index': v[0],
             '_type': 'jobs_data',
             '_id': int(k),
             'doc': {'child_ids': v[1]}
-        }
-        data.append(d)
+        })
 
-    res = bulk(client=es, actions=data, stats_only=True, timeout="5m")
-    print(res)
+    res=bulk(client = es, actions = data, stats_only = True, timeout = "5m")
+    print("updated:", res[0], "  issues:", res[1])
 
 
-jobs = []
-scroll = scan(client=es, index=job_indices, query=job_query, scroll='5m', timeout="5m", size=10000)
-count = 0
+jobs=[]
+scroll=scan(client = es, index = job_indices, query = job_query, scroll = '5m', timeout = "5m", size = 10000)
+count=0
+
+# looping over all jobs in all these indices
 
 for res in scroll:
     count += 1
     if not count % 100000:
-        # print(' selected:', count)
+        print('read:', count)
         exec_update(jobs)
-        jobs = []
+        jobs=[]
     # print(res)
     jobs.append({"pid": int(res['_id']), "ind": res['_index']})
     # if count%5 == 1: exec_update(jobs)
 
 exec_update(jobs)
-jobs = []
+jobs=[]
