@@ -51,9 +51,6 @@ max_limit_q = {
         "range": {
             "pandaid": {
                 "lte": int(max_pid + 10E6),
-        "range": {
-            "pandaid": {
-                "lte": int(max_pid + 10E6),
                 "gt": int(max_pid)
             }
         }
@@ -74,8 +71,10 @@ indices = [x for x in indices if x != '']
 selected_indices = []
 acc = False
 for i in indices:
-    if i == min_index: acc = True
-    if i == max_index: acc = False
+    if i == min_index:
+        acc = True
+    if i == max_index:
+        acc = False
     if i == min_index or i == max_index or acc == True:
         selected_indices.append(i)
 
@@ -95,7 +94,6 @@ job_query = {
 }
 
 
-
 def exec_update(jobs):
     global df
     jdf = pd.DataFrame(jobs)
@@ -107,13 +105,13 @@ def exec_update(jobs):
     cnts = jcg.count()
     # print("multiples:", cnts[cnts.new_pid>1])
 
-
     ma = {}
     for old_pid, row in jc.iterrows():
         ind = row['ind']
         child_id = row['new_pid']
         # print(ind,child_id)
-        if old_pid not in ma: ma[old_pid] = ['', []]
+        if old_pid not in ma:
+            ma[old_pid] = ['', []]
         ma[old_pid][0] = ind
         ma[old_pid][1].append(int(child_id))
 
@@ -130,6 +128,7 @@ def exec_update(jobs):
 
     res = bulk(client=es, actions=data, stats_only=True, timeout="5m")
     print(res)
+
 
 jobs = []
 scroll = scan(client=es, index=job_indices, query=job_query, scroll='5m', timeout="5m", size=10000)
