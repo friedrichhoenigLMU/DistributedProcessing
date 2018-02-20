@@ -12,14 +12,16 @@ endDate=$(date -u '+%Y-%m-%d' -d "-24hour")
 echo "start date: ${startDate}"
 echo "end date: ${endDate}"
 
-hdfs dfs -rm -R -f -skipTrash /atlas/analytics/job_parents/${startDate} 
+hdfs dfs -rm -R -f -skipTrash /atlas/analytics/job_parents_temp
 
 ./SqoopToAnalytix.sh "${startDate}" "${endDate}"
 echo "Sqooping DONE."
 
-echo "copy file to UC. Will index it from there."
-hdfs dfs -getmerge /atlas/analytics/job_parents/${startDate} /tmp/${startDate}.update
-scp /tmp/${startDate}.update uct2-collectd.mwt2.org:/tmp/.
-rm /tmp/${startDate}.update
+echo "Merge data into file in temp. Will index it from there."
+rm -f /tmp/job_parents_temp.csv
+hdfs dfs -getmerge /atlas/analytics/job_parents_temp /tmp/job_parents_temp.csv
+
+echo "Running updater"
+python3.6 updater.py
 
 echo "DONE."
