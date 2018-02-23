@@ -12,8 +12,8 @@ export PATH=$PATH:$SQOOP_HOME/bin
 export HADOOP_OPTS=-Djava.security.egd=file:/dev/../dev/urandom
 kinit analyticssvc@CERN.CH -k -t /tmp/keytab/analyticssvc.keytab
 
-startDate=2018-01-01
-endDate=2018-01-07
+startDate=2018-01-07
+endDate=2018-02-01
 
 echo "start date: ${startDate}"
 echo "end date: ${endDate}"
