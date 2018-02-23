@@ -2,8 +2,13 @@
 
 echo "  *******************************  importing job status table  *******************************"
 
-startDate=$(date +%Y-%m-%d -d "-4day")
-endDate=$(date +%Y-%m-%d  -d "-3day")
+export SQOOP_HOME=/usr/local/sqoop
+export PATH=$PATH:$SQOOP_HOME/bin
+export HADOOP_OPTS=-Djava.security.egd=file:/dev/../dev/urandom
+kinit analyticssvc@CERN.CH -k -t /tmp/keytab/analyticssvc.keytab
+
+startDate=2018-02-16
+endDate=2018-02-17
 
 echo "start date: ${startDate}"
 echo "end date: ${endDate}"
