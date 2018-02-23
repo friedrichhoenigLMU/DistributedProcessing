@@ -2,12 +2,9 @@
 
 # this code updates child_ids info on all jobs that have been retried
 
-import os
-import sys
 from elasticsearch import Elasticsearch, helpers
 from elasticsearch.helpers import scan, bulk
 
-import numpy as np
 import pandas as pd
 
 INDEX = 'jobs_archive_*'
