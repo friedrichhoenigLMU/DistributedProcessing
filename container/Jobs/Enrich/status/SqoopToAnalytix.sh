@@ -4,7 +4,8 @@ echo "  *******************************  importing job status table  ***********
 echo " between $1 and $2 "
 
 sqoop import \
-    --connect $JOB_ORACLE_ADG_CONNECTION_STRING \
+    # --connect $JOB_ORACLE_ADG_CONNECTION_STRING \
+    --connect $JOB_ORACLE_CONNECTION_STRING \
     --username $JOB_ORACLE_USER --password $JOB_ORACLE_PASS \
     --table ATLAS_PANDA.JOBS_STATUSLOG \
     -m 4 --split-by PANDAID --as-avrodatafile \
