@@ -10,65 +10,7 @@ import pandas as pd
 es = Elasticsearch([{'host': 'atlas-kibana.mwt2.org', 'port': 9200}], timeout=60)
 
 INDEX = 'jobs'
-CH_SIZE = 100000
-
-
-def getIndices(min_pid, max_pid):
-    # find oldest and newest index that should be scanned
-
-    min_limit_q = {
-        "size": 1,
-        'query': {
-            "range": {
-                "pandaid": {
-                    "lte": int(min_pid),
-                    "gt": 0
-                }
-            }
-        },
-        "sort": [{"pandaid": {"order": "desc"}}]
-    }
-
-    r_min = es.search(index=INDEX, body=min_limit_q)
-    min_index = r_min['hits']['hits'][0]['_index']
-
-    max_limit_q = {
-        "size": 1,
-        'query': {
-            "range": {
-                "pandaid": {
-                    "lte": int(max_pid + 10E6),
-                    "gt": int(max_pid)
-                }
-            }
-        },
-        "sort": [{"pandaid": {"order": "asc"}}]
-    }
-
-    r_min = es.search(index=INDEX, body=max_limit_q)
-    max_index = r_min['hits']['hits'][0]['_index']
-
-    print("limit indices: ", min_index, max_index)
-
-    # get relevant job indices
-    indices = es.cat.indices(index=INDEX, h="index").split('\n')
-    indices = sorted(indices)
-    indices = [x for x in indices if x != '']
-
-    selected_indices = []
-    acc = False
-    for i in indices:
-        if i == min_index:
-            acc = True
-        if i == max_index:
-            acc = False
-        if i == min_index or i == max_index or acc == True:
-            selected_indices.append(i)
-
-    job_indices = ''
-    job_indices = ','.join(selected_indices)
-    print(job_indices)
-    return job_indices
+CH_SIZE = 250000
 
 
 def exec_update(jobs, df):
@@ -128,21 +70,27 @@ for i in range(0, df_size, CH_SIZE):
 print('Total chunks:', len(chunks))
 
 for ch in chunks:
-    job_indices = getIndices(ch.old_pid.min(), ch.old_pid.max())
-
-    # make index to be old_pid
-    ch.set_index("old_pid", inplace=True)
 
     job_query = {
         "size": 0,
         "_source": ["_id"],
         'query': {
-            'bool': {'must_not': [{"term": {"jobstatus": "finished"}}]}
+            'bool': {
+                'must': [{
+                    "range": {
+                        "pandaid": {"gte": int(ch.old_pid.min()), "lte": int(ch.old_pid.max())}
+                    }
+                }],
+                'must_not': [{"term": {"jobstatus": "finished"}}]
+            }
         }
     }
 
+    # make index to be old_pid
+    ch.set_index("old_pid", inplace=True)
+
     jobs = []
-    scroll = scan(client=es, index=job_indices, query=job_query, scroll='5m', timeout="5m", size=10000)
+    scroll = scan(client=es, index=INDEX, query=job_query, scroll='5m', timeout="5m", size=10000)
     count = 0
 
     # looping over all jobs in all these indices
