@@ -61,15 +61,21 @@ print('jobs to be updated:', df.old_pid.count())
 # sort according to raising old_pid.
 df.sort_values(by='old_pid', inplace=True)
 
-# make large chunks
-chunks = []
-df_size = df.shape[0]
-for i in range(0, df_size, CH_SIZE):
-    chunks.append(df[i:min(i + CH_SIZE, df_size)])
+gl_min = df.old_pid.min()
+gl_max = df.old_pid.max()
 
-print('Total chunks:', len(chunks))
+count = 0
 
-for ch in chunks:
+for i in range(gl_min, gl_max, CH_SIZE):
+
+    loc_min = i
+    loc_max = min(gl_max, loc_min + CH_SIZE)
+    print('chunk:', loc_min, '-', loc_max)
+
+    ch = df[(df['old_pid'] >= loc_min) & (df['old_pid'] <= loc_max)]
+    if ch.shape[0] == 0:
+        print('skipping chunk')
+        continue
 
     job_query = {
         "size": 0,
@@ -91,19 +97,14 @@ for ch in chunks:
 
     jobs = []
     scroll = scan(client=es, index=INDEX, query=job_query, scroll='5m', timeout="5m", size=10000)
-    count = 0
 
     # looping over all jobs in all these indices
 
     for res in scroll:
         count += 1
-        if not count % 100000:
-            print('read:', count)
-            exec_update(jobs, ch)
-            jobs = []
-        # print(res)
         jobs.append({"pid": int(res['_id']), "ind": res['_index']})
-        # if count%5 == 1: exec_update(jobs)
+        if count % 1000000 == 0:
+            print('scanned:', count)
 
     exec_update(jobs, ch)
     jobs = []
