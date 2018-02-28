@@ -106,7 +106,11 @@ for i in range(gl_min, gl_max, CH_SIZE):
         if count % 1000000 == 0:
             print('scanned:', count)
 
-    exec_update(jobs, ch)
-    jobs = []
+    if len(jobs) > 0:
+        exec_update(jobs, ch)
+        jobs = []
+    else:
+        print('PROBLEM ... should have seen at least', ch.shape[0], 'jobs')
+
 
 print("All done.")
