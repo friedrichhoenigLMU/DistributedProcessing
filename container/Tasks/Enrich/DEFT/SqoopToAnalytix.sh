@@ -13,4 +13,9 @@ sqoop import \
     -m 1 --target-dir /atlas/analytics/DEFT_temp \
     --map-column-java TASKID=Long,OUTPUT_FORMATS=String
 
+rc=$?; if [[ $rc != 0 ]]; then 
+    echo "problem with sqoop. Exiting."
+    exit $rc
+fi
+
 echo "DONE"

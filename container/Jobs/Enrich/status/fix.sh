@@ -17,6 +17,11 @@ hdfs dfs -rm -R -f -skipTrash /atlas/analytics/job_states/${startDate}
 
 ./SqoopToAnalytix.sh ${startDate} ${endDate}
 
+rc=$?; if [[ $rc != 0 ]]; then 
+    echo "problem with sqoop. Exiting."
+    exit $rc; 
+fi
+
 echo "Sqooping DONE."
 
 # pig -4 log4j.properties -f StatusToESuc.pig -param INPD=${fileName} -param ININD=${ind}

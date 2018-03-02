@@ -11,7 +11,17 @@ echo "end date: ${endDate}"
 echo "file name: ${fileName}"
 echo "index : ${ind}"
 ./JobSqoopToAnalytix.sh "${startDate}" "${endDate}" "${fileName}"
+rc=$?; if [[ $rc != 0 ]]; then 
+    echo "problem with sqoop. Exiting."
+    exit $rc
+fi
+
 echo "Sqooping DONE."
 
 pig -4 log4j.properties -f JobsToESuc.pig -param INPD=${fileName} -param ININD=${ind}
+rc=$?; if [[ $rc != 0 ]]; then 
+    echo "problem with pig indexer. Exiting."
+    exit $rc
+fi
+
 echo "Indexing UC DONE."

@@ -13,4 +13,9 @@ sqoop import \
     --where "MODIFTIME_EXTENDED between TO_DATE('$1','YYYY-MM-DD') and TO_DATE('$2','YYYY-MM-DD') " \
     --map-column-java PANDAID=Long,MODIFICATIONTIME=String,MODIFTIME_EXTENDED=String
 
+rc=$?; if [[ $rc != 0 ]]; then 
+    echo "problem with sqoop. Exiting."
+    exit $rc; 
+fi
+
 echo "DONE"

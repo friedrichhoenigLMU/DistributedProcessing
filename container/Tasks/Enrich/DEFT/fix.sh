@@ -14,9 +14,16 @@ echo "Clean up finished."
 startDate="2013-12-01 00:00:00"
 echo "start date: ${startDate}"
 ./SqoopToAnalytix.sh "${startDate}"
+rc=$?; if [[ $rc != 0 ]]; then 
+    echo "problem with sqoop. Exiting."
+    exit $rc
+fi
 echo "Sqooping DONE."
 
 hdfs dfs -getmerge /atlas/analytics/DEFT_temp /tmp/DEFT.update
 python3.6 updater.py /tmp/DEFT.update
-
+rc=$?; if [[ $rc != 0 ]]; then 
+    echo "problem with task indexer. Exiting."
+    exit $rc
+fi
 echo "Updating UC DONE."

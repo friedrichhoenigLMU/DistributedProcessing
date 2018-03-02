@@ -19,7 +19,15 @@ echo "Removing previous data in HDFS"
 hdfs dfs -rm -R -f -skipTrash hdfs://analytix/atlas/analytics/tasks_temp
 
 ./TaskSqoopToAnalytix.sh "${startDate}" "${endDate}" 
+rc=$?; if [[ $rc != 0 ]]; then 
+    echo "problem with sqoop. Exiting."
+    exit $rc
+fi
 echo "Sqooping DONE."
 
 pig -4 log4j.properties -f TasksToESuc.pig
+rc=$?; if [[ $rc != 0 ]]; then 
+    echo "problem with task indexer. Exiting."
+    exit $rc
+fi
 echo "Indexing UC DONE."
