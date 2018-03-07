@@ -19,7 +19,7 @@ fi
 
 echo "Sqooping DONE."
 
-# pig -4 log4j.properties -f StatusToESuc.pig -param INPD=${fileName} -param ININD=${ind}
+pig -4 log4j.properties -f resumming.pig -param date=${startDate}
 
 echo "DONE"
 
