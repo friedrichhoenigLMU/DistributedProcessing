@@ -35,4 +35,11 @@ rc=$?; if [[ $rc != 0 ]]; then
     exit $rc
 fi
 
-echo "Indexing UC DONE."
+echo "Sqooping DONE. Starting resumming."
+
+pig -4 log4j.properties -f resumming.pig -param date=${startDate}
+
+echo "Done resumming. Starting updates."
+
+
+echo "DONE"
