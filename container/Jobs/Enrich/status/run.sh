@@ -19,7 +19,14 @@ fi
 
 echo "Sqooping DONE. Starting resumming."
 
+hdfs dfs -rm -R -f -skipTrash temp/job_state_data
 pig -4 log4j.properties -f resumming.pig -param date=${startDate}
+
+
+rc=$?; if [[ $rc != 0 ]]; then 
+    echo "problem with pig resumming. Exiting."
+    exit $rc; 
+fi
 
 echo "Done resumming. "
 
