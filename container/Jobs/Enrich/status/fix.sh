@@ -8,7 +8,7 @@ export HADOOP_OPTS=-Djava.security.egd=file:/dev/../dev/urandom
 kinit analyticssvc@CERN.CH -k -t /tmp/keytab/analyticssvc.keytab
 
 startDate=2018-03-02
-endDate=2018-03-02
+endDate=2018-03-03
 
 echo "start date: ${startDate}"
 echo "end date: ${endDate}"
@@ -22,11 +22,23 @@ rc=$?; if [[ $rc != 0 ]]; then
     exit $rc; 
 fi
 
-echo "Sqooping DONE. Starting resumming."
-
-pig -4 log4j.properties -f resumming.pig -param date=${startDate}
-
-echo "Done resumming. Starting updates."
+echo "Done resumming. "
 
 
-echo "DONE"
+echo "Merge data into file in temp. Will index it from there."
+rm -f /tmp/job_status_temp.csv
+hdfs dfs -getmerge /atlas/analytics/temp/job_state_data /tmp/job_status_temp.csv
+
+
+rc=$?; if [[ $rc != 0 ]]; then 
+    echo "problem with getmerge. Exiting."
+    exit $rc; 
+fi
+
+echo "Running updater"
+python3.6 updater.py
+
+rc=$?; if [[ $rc != 0 ]]; then 
+    echo "problem with updater. Exiting."
+    exit $rc; 
+fi
