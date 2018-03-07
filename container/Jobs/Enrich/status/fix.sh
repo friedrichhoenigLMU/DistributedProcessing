@@ -27,7 +27,7 @@ echo "Done resumming. "
 
 echo "Merge data into file in temp. Will index it from there."
 rm -f /tmp/job_status_temp.csv
-hdfs dfs -getmerge /atlas/analytics/temp/job_state_data /tmp/job_status_temp.csv
+hdfs dfs -getmerge temp/job_state_data /tmp/job_status_temp.csv
 
 
 rc=$?; if [[ $rc != 0 ]]; then 
