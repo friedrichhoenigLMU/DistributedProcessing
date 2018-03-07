@@ -7,8 +7,8 @@ export PATH=$PATH:$SQOOP_HOME/bin
 export HADOOP_OPTS=-Djava.security.egd=file:/dev/../dev/urandom
 kinit analyticssvc@CERN.CH -k -t /tmp/keytab/analyticssvc.keytab
 
-startDate=2018-02-16
-endDate=2018-02-17
+startDate=2018-03-02
+endDate=2018-03-02
 
 echo "start date: ${startDate}"
 echo "end date: ${endDate}"
@@ -22,9 +22,11 @@ rc=$?; if [[ $rc != 0 ]]; then
     exit $rc; 
 fi
 
-echo "Sqooping DONE."
+echo "Sqooping DONE. Starting resumming."
 
-# pig -4 log4j.properties -f StatusToESuc.pig -param INPD=${fileName} -param ININD=${ind}
+pig -4 log4j.properties -f resumming.pig -param date=${startDate}
+
+echo "Done resumming. Starting updates."
+
 
 echo "DONE"
-
