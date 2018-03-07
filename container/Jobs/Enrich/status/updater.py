@@ -49,9 +49,9 @@ def exec_update(jobs, df):
     return
 
 
-df = pd.read_csv('/tmp/job_status_temp.csv', header=None, names=['first_state_time', 'last_state_time', 'failed', 'defined', 'holding',
+df = pd.read_csv('/tmp/job_status_temp.csv', header=None, names=['PANDAID', 'jobstatus_start', 'jobstatus_end', 'path', 'first_state_time', 'last_state_time', 'failed', 'defined', 'holding',
                                                                  'merging', 'pending', 'running', 'activated', 'cancelled', 'transferring', 'sent', 'closed', 'assigned', 'finished', 'starting', 'waiting'])
-print('jobs found in the file:', df.first_state_time.count())
+print('jobs found in the file:', df.PANDAID.count())
 
 
 # # leave only retries
@@ -60,59 +60,60 @@ print('jobs found in the file:', df.first_state_time.count())
 
 # print('jobs to be updated:', df.old_pid.count())
 
-# # sort according to raising old_pid.
-# df.sort_values(by='old_pid', inplace=True)
+# sort according to raising old_pid.
+df.sort_values(by='PANDAID', inplace=True)
 
-# gl_min = df.old_pid.min()
-# gl_max = df.old_pid.max()
+gl_min = df.PANDAID.min()
+gl_max = df.PANDAID.max()
 
-# count = 0
+count = 0
 
-# for i in range(gl_min, gl_max, CH_SIZE):
+for i in range(gl_min, gl_max, CH_SIZE):
 
-#     loc_min = i
-#     loc_max = min(gl_max, loc_min + CH_SIZE)
-#     print('chunk:', loc_min, '-', loc_max)
+    loc_min = i
+    loc_max = min(gl_max, loc_min + CH_SIZE)
+    print('chunk:', loc_min, '-', loc_max)
 
-#     ch = df[(df['old_pid'] >= loc_min) & (df['old_pid'] <= loc_max)]
-#     if ch.shape[0] == 0:
-#         print('skipping chunk')
-#         continue
+    ch = df[(df['PANDAID'] >= loc_min) & (df['PANDAID'] <= loc_max)]
+    if ch.shape[0] == 0:
+        print('skipping chunk')
+        continue
 
-#     job_query = {
-#         "size": 0,
-#         "_source": ["_id"],
-#         'query': {
-#             'bool': {
-#                 'must': [{
-#                     "range": {
-#                         "pandaid": {"gte": int(ch.old_pid.min()), "lte": int(ch.old_pid.max())}
-#                     }
-#                 }],
-#                 'must_not': [{"term": {"jobstatus": "finished"}}]
-#             }
-#         }
-#     }
+    job_query = {
+        "size": 0,
+        "_source": ["_id"],
+        'query': {
+            'bool': {
+                'must': [{
+                    "range": {
+                        "pandaid": {"gte": int(ch.PANDAID.min()), "lte": int(ch.PANDAID.max())}
+                    }
+                }]
+                # ,
+                # 'must_not': [{"term": {"jobstatus": "finished"}}]
+            }
+        }
+    }
 
-#     # make index to be old_pid
-#     ch.set_index("old_pid", inplace=True)
+    # make index to be old_pid
+    ch.set_index("PANDAID", inplace=True)
 
-#     jobs = []
-#     scroll = scan(client=es, index=INDEX, query=job_query, scroll='5m', timeout="5m", size=10000)
+    jobs = []
+    scroll = scan(client=es, index=INDEX, query=job_query, scroll='5m', timeout="5m", size=10000)
 
-#     # looping over all jobs in all these indices
+    # looping over all jobs in all these indices
 
-#     for res in scroll:
-#         count += 1
-#         jobs.append({"pid": int(res['_id']), "ind": res['_index']})
-#         if count % 1000000 == 0:
-#             print('scanned:', count)
+    for res in scroll:
+        count += 1
+        jobs.append({"pid": int(res['_id']), "ind": res['_index']})
+        if count % 1000000 == 0:
+            print('scanned:', count)
 
-#     if len(jobs) > 0:
-#         exec_update(jobs, ch)
-#         jobs = []
-#     else:
-#         print('PROBLEM ... should have seen at least', ch.shape[0], 'jobs')
+    if len(jobs) > 0:
+        #         exec_update(jobs, ch)
+        jobs = []
+    else:
+        print('PROBLEM ... should have seen at least', ch.shape[0], 'jobs')
 
 
 print("All done.")
