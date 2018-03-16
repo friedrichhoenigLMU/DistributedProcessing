@@ -5,7 +5,7 @@ REGISTER '/usr/lib/pig/lib/json-*.jar';
 REGISTER '/usr/lib/pig/lib/jython-*.jar';
 REGISTER '/usr/lib/pig/lib/snappy-*.jar';
 
-REGISTER '/elasticsearch-hadoop-6.1.1/dist/elasticsearch-hadoop-pig-6.1.1.jar';
+REGISTER '/elasticsearch-hadoop-6.2.2/dist/elasticsearch-hadoop-pig-6.2.2.jar';
 
 SET default_parallel 5;
 SET pig.noSplitCombination TRUE;
