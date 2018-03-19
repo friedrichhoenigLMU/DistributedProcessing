@@ -2,7 +2,8 @@ REGISTER 'merge.py'  USING jython as myfuncs;
 REGISTER '/usr/lib/pig/piggybank.jar' ;
 REGISTER '/usr/lib/pig/lib/avro-*.jar';
 REGISTER '/usr/lib/pig/lib/jython-*.jar';
-REGISTER '/elasticsearch-hadoop-6.1.1/dist/elasticsearch-hadoop-pig-6.1.1.jar';
+
+REGISTER '/elasticsearch-hadoop/elasticsearch-hadoop-pig.jar';
 
 job_states_new_all= LOAD '/atlas/analytics/job_states/$date' USING AvroStorage() AS (PANDAID: long,MODIFICATIONTIME: chararray,JOBSTATUS: chararray,PRODSOURCELABEL: chararray,CLOUD: chararray,COMPUTINGSITE: chararray, MODIFTIME_EXTENDED:chararray ); 
 

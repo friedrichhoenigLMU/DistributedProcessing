@@ -5,7 +5,7 @@ REGISTER '/usr/lib/pig/lib/json-*.jar';
 REGISTER '/usr/lib/pig/lib/jython-*.jar';
 REGISTER '/usr/lib/pig/lib/snappy-*.jar';
 
-REGISTER '/elasticsearch-hadoop-6.2.2/dist/elasticsearch-hadoop-pig-6.2.2.jar';
+REGISTER '/elasticsearch-hadoop/elasticsearch-hadoop-pig.jar';
 
 REGISTER 'myudfs.py' using jython as myfuncs;
 
