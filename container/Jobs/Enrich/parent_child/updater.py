@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # this code updates child_ids info on all jobs that have been retried
-
+import sys
 from elasticsearch import Elasticsearch, helpers
 from elasticsearch.helpers import scan, bulk
 
@@ -57,6 +57,9 @@ df = df[df.relation_type == 'retry']
 del df['relation_type']
 
 print('jobs to be updated:', df.old_pid.count())
+if df.old_pid.count()==0:
+    print('Since there is nothing to update, will exit now.')
+    sys.exit(0)
 
 # sort according to raising old_pid.
 df.sort_values(by='old_pid', inplace=True)
