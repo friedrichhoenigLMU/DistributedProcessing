@@ -21,7 +21,7 @@ define EsStorage org.elasticsearch.hadoop.pig.EsStorage(
     );
 
 
-PAN = LOAD '/atlas/analytics/jobs/$INPD' USING AvroStorage();
+PAN = LOAD '/atlas/analytics/jobs_temp' USING AvroStorage();
 --DESCRIBE PAN;
 
 --L = LIMIT PAN 1000; --dump L;
