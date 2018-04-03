@@ -10,17 +10,12 @@ kinit analyticssvc@CERN.CH -k -t /tmp/keytab/analyticssvc.keytab
 
 startDate="$1 00:00:00"
 endDate="$1 23:59:59"
-fileName="$1"
 ind="$1"
 echo "start date: ${startDate}"
 echo "end date: ${endDate}"
-echo "file name: ${fileName}"
 echo "index : ${ind}"
 
-echo "Removing previous data in HDFS"
-hdfs dfs -rm -R -f -skipTrash  hdfs://analytix/atlas/analytics/jobs/$1_*
-
-./JobSqoopToAnalytix.sh "${startDate}" "${endDate}" "${fileName}"
+./JobSqoopToAnalytix.sh "${startDate}" "${endDate}" 
 rc=$?; if [[ $rc != 0 ]]; then 
     echo "problem with sqoop. Exiting."
     exit $rc
@@ -28,7 +23,7 @@ fi
 
 echo "Sqooping DONE."
 
-pig -4 log4j.properties -f JobsToESuc.pig -param INPD=${fileName} -param ININD=${ind}
+pig -4 log4j.properties -f JobsToESuc.pig -param -param ININD=${ind}
 
 rc=$?; if [[ $rc != 0 ]]; then 
     echo "problem with pig indexer. Exiting."
