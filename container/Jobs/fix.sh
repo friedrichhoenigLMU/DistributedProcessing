@@ -8,6 +8,10 @@ export PATH=$PATH:$SQOOP_HOME/bin
 export HADOOP_OPTS=-Djava.security.egd=file:/dev/../dev/urandom
 kinit analyticssvc@CERN.CH -k -t /tmp/keytab/analyticssvc.keytab
 
+
+echo "Removing previous data in HDFS"
+hdfs dfs -rm -R -f -skipTrash hdfs://analytix/atlas/analytics/jobs_temp
+
 startDate="$1 00:00:00"
 endDate="$1 23:59:59"
 ind="$1"
