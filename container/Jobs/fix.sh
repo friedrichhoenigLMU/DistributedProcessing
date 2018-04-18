@@ -27,7 +27,7 @@ fi
 
 echo "Sqooping DONE."
 
-pig -4 log4j.properties -f JobsToESuc.pig -param -param ININD=${ind}
+pig -4 log4j.properties -f JobsToESuc.pig -param ININD=${ind}
 
 rc=$?; if [[ $rc != 0 ]]; then 
     echo "problem with pig indexer. Exiting."
