@@ -14,64 +14,60 @@ es = Elasticsearch([{'host': 'localhost', 'port': 9200}], timeout=60)
 INDEX = 'job_states_*'
 CH_SIZE = 250000
 
+
 def exec_update(jobs, new):
     old = pd.DataFrame(jobs, columns=['ind', 'PANDAID'] + fields).set_index('PANDAID')
-    new["ind"]  = old["ind"] # get index before dropping empty entries
+    new["ind"] = old["ind"]  # get index before dropping empty entries
     old = old[old.jobstatus_start.notnull()].fillna(0.0)  # filter out entries that have never been updated
-    old['path'] = old['path'].astype('str') # stupid woraround
-    old['jobstatus_end'] = old['jobstatus_end'].astype('str') # stupid woraround
-    
+    old['path'] = old['path'].astype('str')  # stupid woraround
+    old['jobstatus_end'] = old['jobstatus_end'].astype('str')  # stupid woraround
+
     new = new.fillna(0.0)
     old.to_pickle("old.pickle")
     new.to_pickle("new.pickle")
-    
-    
-    dur_fields  = [ 'failed', 'defined', 'holding',
-          'merging', 'pending', 'running', 'activated', 
-          'cancelled', 'transferring', 'sent', 'closed', 
-          'assigned', 'finished', 'starting', 'waiting']
-      
-    # add durations    
+
+    dur_fields = ['failed', 'defined', 'holding',
+                  'merging', 'pending', 'running', 'activated',
+                  'cancelled', 'transferring', 'sent', 'closed',
+                  'assigned', 'finished', 'starting', 'waiting']
+
+    # add durations
     for field_name in dur_fields:
         new[field_name] = new[field_name].add(old[field_name], fill_value=0.0)
-    
+
     # calculate time between records
     for field_name in dur_fields:
-        field_filter = old.jobstatus_end==field_name
+        field_filter = old.jobstatus_end == field_name
         delta = new.first_state_time.astype('datetime64[ns]') - old[field_filter].last_state_time.astype('datetime64[ns]')
         delta = delta.dt.total_seconds().dropna()
-        new[field_name] = new[field_name].add(delta, fill_value = 0.0)
-    
-    
+        new[field_name] = new[field_name].add(delta, fill_value=0.0)
+
     new['jobstatus_start'].update(old["jobstatus_start"])
     new['first_state_time'].update(old["first_state_time"])
-    new['path'] = old["path"].add(new["path"], fill_value='' )
-    
+    new['path'] = old["path"].add(new["path"], fill_value='')
+
     #new["ind"] = INDEX
-    #new["ind"].update(old["ind"])
+    # new["ind"].update(old["ind"])
     #new['ind'] = old['ind']
     # print(new.head())
-    
-    data = []                                                                                                                                                                                                                                
+
+    data = []
     for PANDAID, row in new.iterrows():
-        data.append({                                                                                                                                                                                                                        
-            '_op_type': 'update',                                                                                                                                                                                                            
-            '_index': row['ind'],                                                                                                                                                                                                                  
-            '_type': 'job_state_data',                                                                                                                                                                                                            
-            '_id': int(PANDAID),                                                                                                                                                                                                                   
-            'doc': {field:row[field] for field in fields if row[field]  }                                                                                                                                                                                                       
-        })                                                                                                                                                                                                                                   
-                                                                                                                                                                                                                                             
-    res = bulk(client=es, actions=data, stats_only=True, timeout="5m")                                                                                                                                                                       
-    print("updated:", res[0], "  issues:", res[1])   
-    return                                                                                                                                                                                                                                   
+        data.append({
+            '_op_type': 'update',
+            '_index': row['ind'],
+            '_type': 'job_state_data',
+            '_id': int(PANDAID),
+            'doc': {field: row[field] for field in fields if row[field]}
+        })
+
+    res = bulk(client=es, actions=data, stats_only=True, timeout="5m")
+    print("updated:", res[0], "  issues:", res[1])
+    return
 
 
-
-
-df = pd.read_csv('temp/2018-01-02/part-r-00000', header=None, names=['PANDAID', 'jobstatus_start', 'jobstatus_end', 'path', 'first_state_time', 'last_state_time', 'failed', 'defined', 'holding',
+df = pd.read_csv('/tmp/job_status_temp.csv', header=None, names=['PANDAID', 'jobstatus_start', 'jobstatus_end', 'path', 'first_state_time', 'last_state_time', 'failed', 'defined', 'holding',
                                                                  'merging', 'pending', 'running', 'activated', 'cancelled', 'transferring', 'sent', 'closed', 'assigned', 'finished', 'starting', 'waiting'])
-
 
 
 print('jobs found in the file:', df.PANDAID.count())
@@ -88,13 +84,13 @@ df.sort_values(by='PANDAID', inplace=True)
 
 gl_min = df.PANDAID.min()
 gl_max = df.PANDAID.max()
-print ("gl_min: {}, gl_max: {}".format(gl_min, gl_max))
+print("gl_min: {}, gl_max: {}".format(gl_min, gl_max))
 count = 0
 
 fields = ['jobstatus_start', 'jobstatus_end', 'path', 'first_state_time', 'last_state_time', 'failed', 'defined', 'holding',
           'merging', 'pending', 'running', 'activated', 'cancelled', 'transferring', 'sent', 'closed', 'assigned', 'finished', 'starting', 'waiting']
 
-for i in range(gl_min, gl_max+1, CH_SIZE):
+for i in range(gl_min, gl_max + 1, CH_SIZE):
 
     loc_min = i
     loc_max = min(gl_max, loc_min + CH_SIZE)
@@ -107,7 +103,7 @@ for i in range(gl_min, gl_max+1, CH_SIZE):
 
     job_query = {
         "size": 0,
-        "_source": ["_id" ] + fields,
+        "_source": ["_id"] + fields,
         'query': {
             'bool': {
                 'must': [{
@@ -130,7 +126,7 @@ for i in range(gl_min, gl_max+1, CH_SIZE):
 
     for res in scroll:
         count += 1
-        if int(res["_id"])  in ch.index:
+        if int(res["_id"]) in ch.index:
             jobs.append(dict({"PANDAID": int(res['_id']), "ind": res['_index']}, **res["_source"]))
         if count % 10000 == 0:
             print('scanned:', count)
