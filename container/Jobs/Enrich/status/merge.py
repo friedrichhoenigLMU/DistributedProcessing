@@ -28,10 +28,18 @@ def total_seconds(td):
 
 
 def toDatetime(timestr):
-    try:
-        return datetime.strptime(timestr, "%Y-%m-%d %H:%M:%S.%f")
-    except ValueError:
-        return datetime.strptime(timestr, "%Y-%m-%d %H:%M:%S")
+    split_time = timestr.split('.')
+    date = datetime.strptime(split_time[0], "%Y-%m-%d %H:%M:%S")
+    if len(split_time) > 1:
+        date += timedelta(seconds=float('.' + split_time[1]))
+
+    return date
+
+# def toDatetime(timestr):
+#     try:
+#         return datetime.strptime(timestr, "%Y-%m-%d %H:%M:%S.%f")
+#     except ValueError:
+#         return datetime.strptime(timestr, "%Y-%m-%d %H:%M:%S")
 
 
 @outputSchema('stats:tuple(PANDAID:long, jobstatus_start:chararray, jobstatus_end:chararray, path:chararray, time_start:chararray, time_end:chararray, failed:float, defined:float, holding:float, merging:float, pending:float, running:float, activated:float, cancelled:float, transferring:float, sent:float, closed:float, assigned:float, finished:float, starting:float, waiting:float)')
