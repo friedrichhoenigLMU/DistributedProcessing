@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-export JAVA_HOME=/etc/alternatives/java_sdk_1.9.0_openjdk/jre/
+# export JAVA_HOME=/etc/alternatives/java_sdk_1.9.0_openjdk/jre/
 
 echo "  *******************************  importing job status table  *******************************"
 
