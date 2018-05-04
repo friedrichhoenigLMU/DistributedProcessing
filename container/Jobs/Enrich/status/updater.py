@@ -7,29 +7,29 @@ from elasticsearch.helpers import scan, bulk
 import glob
 import pandas as pd
 
-es = Elasticsearch([{'host': 'localhost', 'port': 9200}], timeout=60)
-#es = Elasticsearch([{'host': 'atlas-kibana.mwt2.org', 'port': 9200}], timeout=60)
+#es = Elasticsearch([{'host': 'localhost', 'port': 9200}], timeout=60)
+es = Elasticsearch([{'host': 'atlas-kibana.mwt2.org', 'port': 9200}], timeout=60)
 
 
-INDEX = 'job_states_*'
+INDEX = 'jobs_archive_*'
 CH_SIZE = 250000
 
 
 def exec_update(jobs, new):
     old = pd.DataFrame(jobs, columns=['ind', 'PANDAID'] + fields).set_index('PANDAID')
     new["ind"] = old["ind"]  # get index before dropping empty entries
-    old = old[old.jobstatus_start.notnull()].fillna(0.0)  # filter out entries that have never been updated
-    old['path'] = old['path'].astype('str')  # stupid woraround
-    old['jobstatus_end'] = old['jobstatus_end'].astype('str')  # stupid woraround
+    old = old[old.js_start.notnull()].fillna(0.0)  # filter out entries that have never been updated
+    old['js_path'] = old['js_path'].astype('str')  # stupid woraround
+    old['js_end'] = old['js_end'].astype('str')  # stupid woraround
 
     new = new.fillna(0.0)
     old.to_pickle("old.pickle")
     new.to_pickle("new.pickle")
 
-    dur_fields = ['failed', 'defined', 'holding',
-                  'merging', 'pending', 'running', 'activated',
-                  'cancelled', 'transferring', 'sent', 'closed',
-                  'assigned', 'finished', 'starting', 'waiting']
+    dur_fields = ['js_failed', 'js_defined', 'js_holding',
+                  'js_merging', 'js_pending', 'js_running', 'js_activated',
+                  'js_cancelled', 'js_transferring', 'js_sent', 'js_closed',
+                  'js_assigned', 'js_finished', 'js_starting', 'js_waiting']
 
     # add durations
     for field_name in dur_fields:
@@ -37,14 +37,14 @@ def exec_update(jobs, new):
 
     # calculate time between records
     for field_name in dur_fields:
-        field_filter = old.jobstatus_end == field_name
-        delta = new.first_state_time.astype('datetime64[ns]') - old[field_filter].last_state_time.astype('datetime64[ns]')
+        field_filter = old.js_end == field_name
+        delta = new.js_first_state_time.astype('datetime64[ns]') - old[field_filter].js_last_state_time.astype('datetime64[ns]')
         delta = delta.dt.total_seconds().dropna()
         new[field_name] = new[field_name].add(delta, fill_value=0.0)
 
-    new['jobstatus_start'].update(old["jobstatus_start"])
-    new['first_state_time'].update(old["first_state_time"])
-    new['path'] = old["path"].add(new["path"], fill_value='')
+    new['js_start'].update(old["js_start"])
+    new['js_first_state_time'].update(old["js_first_state_time"])
+    new['js_path'] = old["js_path"].add(new["js_path"], fill_value='')
 
     #new["ind"] = INDEX
     # new["ind"].update(old["ind"])
@@ -66,8 +66,8 @@ def exec_update(jobs, new):
     return
 
 
-df = pd.read_csv('/tmp/job_status_temp.csv', header=None, names=['PANDAID', 'jobstatus_start', 'jobstatus_end', 'path', 'first_state_time', 'last_state_time', 'failed', 'defined', 'holding',
-                                                                 'merging', 'pending', 'running', 'activated', 'cancelled', 'transferring', 'sent', 'closed', 'assigned', 'finished', 'starting', 'waiting'])
+df = pd.read_csv('/tmp/job_status_temp.csv', header=None, names=['PANDAID', 'js_start', 'js_end', 'js_path', 'js_first_state_time', 'js_last_state_time', 'js_failed', 'js_defined', 'js_holding',
+                                                                 'js_merging', 'js_pending', 'js_running', 'js_activated', 'js_cancelled', 'js_transferring', 'js_sent', 'js_closed', 'js_assigned', 'js_finished', 'js_starting', 'js_waiting'])
 
 
 print('jobs found in the file:', df.PANDAID.count())
@@ -87,8 +87,8 @@ gl_max = df.PANDAID.max()
 print("gl_min: {}, gl_max: {}".format(gl_min, gl_max))
 count = 0
 
-fields = ['jobstatus_start', 'jobstatus_end', 'path', 'first_state_time', 'last_state_time', 'failed', 'defined', 'holding',
-          'merging', 'pending', 'running', 'activated', 'cancelled', 'transferring', 'sent', 'closed', 'assigned', 'finished', 'starting', 'waiting']
+fields = ['js_start', 'js_end', 'js_path', 'js_first_state_time', 'js_last_state_time', 'js_failed', 'js_defined', 'js_holding',
+          'js_merging', 'js_pending', 'js_running', 'js_activated', 'js_cancelled', 'js_transferring', 'js_sent', 'js_closed', 'js_assigned', 'js_finished', 'js_starting', 'js_waiting']
 
 for i in range(gl_min, gl_max + 1, CH_SIZE):
 
@@ -112,7 +112,7 @@ for i in range(gl_min, gl_max + 1, CH_SIZE):
                     }
                 }]
                 # ,
-                # 'must_not': [{"term": {"jobstatus": "finished"}}]
+                # 'must_not': [{"term": {"jobstatus": "js_finished"}}]
             }
         }
     }
