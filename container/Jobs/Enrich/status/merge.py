@@ -1,7 +1,7 @@
 from __future__ import division
 #from pig_util import outputSchema
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 statuscodes = {
