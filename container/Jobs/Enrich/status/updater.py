@@ -23,8 +23,8 @@ def exec_update(jobs, new):
     old['js_end'] = old['js_end'].astype('str')  # stupid woraround
 
     new = new.fillna(0.0)
-    old.to_pickle("old.pickle")
-    new.to_pickle("new.pickle")
+    #old.to_pickle("old.pickle")
+    #new.to_pickle("new.pickle")
 
     dur_fields = ['js_failed', 'js_defined', 'js_holding',
                   'js_merging', 'js_pending', 'js_running', 'js_activated',
@@ -56,10 +56,11 @@ def exec_update(jobs, new):
         data.append({
             '_op_type': 'update',
             '_index': row['ind'],
-            '_type': 'job_state_data',
+            '_type': 'jobs_data',
             '_id': int(PANDAID),
             'doc': {field: row[field] for field in fields if row[field]}
         })
+        
 
     res = bulk(client=es, actions=data, stats_only=True, timeout="5m")
     print("updated:", res[0], "  issues:", res[1])
@@ -108,7 +109,7 @@ for i in range(gl_min, gl_max + 1, CH_SIZE):
             'bool': {
                 'must': [{
                     "range": {
-                        "PANDAID": {"gte": int(ch.PANDAID.min()), "lte": int(ch.PANDAID.max())}
+                        "pandaid": {"gte": int(ch.PANDAID.min()), "lte": int(ch.PANDAID.max())}
                     }
                 }]
                 # ,
