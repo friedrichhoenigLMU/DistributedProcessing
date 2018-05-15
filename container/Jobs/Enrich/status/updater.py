@@ -53,6 +53,8 @@ def exec_update(jobs, new):
 
     data = []
     for PANDAID, row in new.iterrows():
+        if not row['ind']:  # if jobs not yet in ES
+            continue        # skip job
         data.append({
             '_op_type': 'update',
             '_index': row['ind'],
@@ -121,7 +123,7 @@ for i in range(gl_min, gl_max + 1, CH_SIZE):
     ch.set_index("PANDAID", inplace=True)
     print("Starting to scroll")
     jobs = []
-    scroll = scan(client=es, index=INDEX, query=job_query, scroll='5m', timeout="1m", size=100)
+    scroll = scan(client=es, index=INDEX, query=job_query, scroll='5m', timeout="5m", size=10000)
 
     # looping over all jobs in all these indices
 
