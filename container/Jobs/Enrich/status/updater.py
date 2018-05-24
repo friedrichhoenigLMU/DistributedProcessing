@@ -17,6 +17,7 @@ CH_SIZE = 250000
 
 def exec_update(jobs, new):
     old = pd.DataFrame(jobs, columns=['ind', 'PANDAID'] + fields).set_index('PANDAID')
+    old = old[~old.index.duplicated(keep='last')] # drop duplicate jobs in jobs_archive
     new["ind"] = old["ind"]  # get index before dropping empty entries
     old = old[old.js_start.notnull()].fillna(0.0)  # filter out entries that have never been updated
     old['js_path'] = old['js_path'].astype('str')  # stupid woraround
@@ -96,10 +97,10 @@ fields = ['js_start', 'js_end', 'js_path', 'js_first_state_time', 'js_last_state
 for i in range(gl_min, gl_max + 1, CH_SIZE):
 
     loc_min = i
-    loc_max = min(gl_max, loc_min + CH_SIZE)
+    loc_max = min(gl_max + 1, loc_min + CH_SIZE)
     print('chunk:', loc_min, '-', loc_max)
 
-    ch = df[(df['PANDAID'] >= loc_min) & (df['PANDAID'] <= loc_max)]
+    ch = df[(df['PANDAID'] >= loc_min) & (df['PANDAID'] < loc_max)]
     if ch.shape[0] == 0:
         print('skipping chunk')
         continue
